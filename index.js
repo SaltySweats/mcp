@@ -13,7 +13,7 @@ const TOOLS = {
 app.post('/call', async (req, res) => {
   const { tool_name, input } = req.body;
   if (!TOOLS[tool_name]) {
-    return res.status(404).json({ error: `Tool '${tool_name}' not found.` });
+    return res.status(404).json({ error: `Tool '${tool_name}' not found. ` });
   }
 
   try {
