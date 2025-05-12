@@ -24,6 +24,6 @@ app.post('/call', async (req, res) => {
   }
 });
 
-app.get('/home', (req, res) => res.send('MCP Server Running'));
+app.get('/', (req, res) => res.send('MCP Server Running'));
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
