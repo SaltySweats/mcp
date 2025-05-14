@@ -1,29 +1,36 @@
 import express from 'express';
-import { echoTool } from './tools/echoTool.js';
+import XLSX from 'xlsx';
+import fs from 'fs';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000;
 
 app.use(express.json());
 
-const TOOLS = {
-  'echo': echoTool
-};
-
-app.post('/call', async (req, res) => {
-  const { tool_name, input } = req.body;
-  if (!TOOLS[tool_name]) {
-    return res.status(404).json({ error: `Tool '${tool_name}' not found. ` });
-  }
-
-  try {
-    const output = await TOOLS[tool_name](input);
-    res.json({ output });
-  } catch (err) {
-    res.status(500).json({ error: 'Tool execution failed.', detail: err.message });
-  }
+// READ Excel file
+app.get('/data', (req, res) => {
+  const workbook = XLSX.readFile('data.xlsx');
+  const sheetName = workbook.SheetNames[0];
+  const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+  res.json(data);
 });
 
-app.get('/', (req, res) => res.send('MCP Server Running'));
+// WRITE to Excel file (append a row)
+app.post('/data', (req, res) => {
+  const workbook = XLSX.readFile('data.xlsx');
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(sheet);
 
-app.listen(port, () => console.log(`Listening on port ${port}`));
+  data.push(req.body); // Add new row
+
+  const newSheet = XLSX.utils.json_to_sheet(data);
+  workbook.Sheets[sheetName] = newSheet;
+  XLSX.writeFile(workbook, 'data.xlsx');
+
+  res.json({ message: 'Data added successfully' });
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
